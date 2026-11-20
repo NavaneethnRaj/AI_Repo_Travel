@@ -23,7 +23,11 @@ async function main() {
   process.once("SIGINT", close);
 
   try {
-    await app.listen({ host: config.HOST, port: config.PORT });
+    await app.listen({
+      host: config.HOST,
+      port: config.PORT,
+      listenTextResolver: () => "Wayfarer is listening",
+    });
   } catch (error) {
     await close();
     const code = error instanceof Error && "code" in error && typeof error.code === "string"

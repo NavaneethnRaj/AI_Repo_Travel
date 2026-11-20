@@ -3,7 +3,7 @@
 An AI travel planner. You chat with an AI (Google Gemini) and it builds your trip live on a Trip Board: itinerary, map,
 budget, weather. Replies render as rich interactive UI using OpenUI (generative UI). It runs with Docker.
 
-**Status:** WP1 includes the Fastify server, persistent SQLite and a mock OpenUI destination card. The page displays the bundled Lisbon fixture. Gemini requests and trip planning arrive in later packages.
+**Status:** WP2 supports account creation, sign-in, and private trip lists. Open a saved trip to see its revision and edit its title. The OpenUI spike and its offline tests remain in the repository. Gemini requests and itinerary planning arrive in later packages.
 
 ## Run locally
 
@@ -14,7 +14,9 @@ docker compose up --build --wait
 curl -fsS http://127.0.0.1:8080/health/ready
 ```
 
-Readiness returns `{"status":"ready","migration":1}`. Open http://127.0.0.1:8080/ to see the card. The default uses mock mode and needs no `.env`. Compose fixes the internal listener on port 8080 and keeps the database under `/data` on the `trip-data` volume.
+Readiness returns `{"status":"ready","migration":2}`. Open http://127.0.0.1:8080/ to sign in or create an account. The default uses mock mode and needs no `.env`. Compose fixes the internal listener on port 8080 and keeps the database under `/data` on the `trip-data` volume.
+
+Compose enables `LOCAL_HTTP_COOKIES=1` for its loopback HTTP listener. Standalone Fastify defaults to a secure, host-only session cookie. When running locally without Docker, use `LOCAL_HTTP_COOKIES=1` only with loopback HTTP. Set `ALLOWED_ORIGINS` to a comma-separated list of exact browser origins for API writes. The release defaults are `http://127.0.0.1:8080` and `http://localhost:8080`. The dev override adds the two port 5173 origins.
 
 ## Verify persistence
 
@@ -27,7 +29,7 @@ snapshot() {
     const db = new Database("/data/wayfarer.db", { readonly: true });
     console.log(JSON.stringify({
       migrations: db.prepare("SELECT version, name, applied_at FROM schema_migrations ORDER BY version").all(),
-      marker: db.prepare("SELECT key, value FROM app_meta ORDER BY key").all()
+      marker: db.prepare("SELECT key, value FROM app_meta WHERE key IN (?, ?) ORDER BY key").all("created_at", "instance_id")
     }));
     db.close();
   '
@@ -69,3 +71,10 @@ npm run generate:openui
 ```
 
 The repository’s .npmrc disables lifecycle scripts to prevent OpenUI’s install telemetry. When running tests directly, leave `GEMINI_API_KEY` unset and use the default mock provider. Run `npm run generate:openui` after editing the component library and review the generated prompt and schema diff with the source change.
+
+
+## Known limits
+
+Sign-up uses the same Argon2id work and a generic failure message for duplicate email addresses. A successful sign-up and a duplicate request still return different outcomes, so registration can reveal whether an address is in use. Requests are limited to five per IP per hour. Email verification and password reset are deferred.
+
+With local Docker Compose, browsers reach Fastify from the bridge gateway address. Local users share the per-IP sign-in and sign-up limits. A hosted deployment needs the trusted-proxy setup described in the design.

@@ -1,0 +1,47 @@
+/* Wayfarer design tokens (design §5). Shared by WP2 and WP3: copy byte-for-byte, never edit in a branch.
+   Extensions go in separate files. Changes go through Team Lead. */
+:root {
+  color-scheme: light dark;
+  --color-canvas: #F7F6F1;
+  --color-surface: #FFFFFF;
+  --color-ink: #172823;
+  --color-ink-secondary: #485E56;
+  --color-accent: #096354;
+  --color-on-accent: #FFFFFF;
+  --color-error: #982F28;
+  --color-outline: #60766C;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --radius-card: 16px;
+  --target-min: 44px;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-canvas: #101B18;
+    --color-surface: #192923;
+    --color-ink: #F1F6F2;
+    --color-ink-secondary: #BBCAC2;
+    --color-accent: #86DEC5;
+    --color-on-accent: #10231C;
+    --color-error: #FFB4A9;
+    --color-outline: #93A99F;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-canvas: #101B18;
+  --color-surface: #192923;
+  --color-ink: #F1F6F2;
+  --color-ink-secondary: #BBCAC2;
+  --color-accent: #86DEC5;
+  --color-on-accent: #10231C;
+  --color-error: #FFB4A9;
+  --color-outline: #93A99F;
+}

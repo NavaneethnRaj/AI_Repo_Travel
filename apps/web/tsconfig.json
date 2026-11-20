@@ -9,5 +9,5 @@
     "tsBuildInfoFile": "../../node_modules/.cache/wayfarer-web.tsbuildinfo"
   },
   "include": ["src", "vite.config.ts", "../../tests/fixtures/split-card.json", "../../assets/catalog/places.json"],
-  "references": [{ "path": "../../packages/travel-ui" }]
+  "references": [{ "path": "../../packages/travel-ui" }, { "path": "../../packages/contracts" }]
 }

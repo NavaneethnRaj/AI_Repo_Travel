@@ -39,7 +39,7 @@ describe("Fastify and SQLite", () => {
     try {
       return {
         migrations: db.prepare("SELECT version, name, applied_at FROM schema_migrations ORDER BY version").all(),
-        metadata: db.prepare("SELECT key, value FROM app_meta ORDER BY key").all(),
+        metadata: db.prepare("SELECT key, value FROM app_meta WHERE key IN (?, ?) ORDER BY key").all("created_at", "instance_id"),
       };
     } finally {
       db.close();
@@ -91,7 +91,10 @@ describe("Fastify and SQLite", () => {
   it("preserves the migration and metadata across two boots of the same directory", async () => {
     boot();
     const before = snapshot();
-    expect(before.migrations).toEqual([{ version: 1, name: "0001_init.sql", applied_at: expect.any(String) }]);
+    expect(before.migrations).toEqual([
+      { version: 1, name: "0001_init.sql", applied_at: expect.any(String) },
+      { version: 2, name: "0002_accounts.sql", applied_at: expect.any(String) },
+    ]);
     expect(before.metadata).toEqual([
       { key: "created_at", value: expect.any(String) },
       { key: "instance_id", value: expect.stringMatching(/^[a-f0-9]{32}$/) },
@@ -121,7 +124,7 @@ describe("Fastify and SQLite", () => {
     const server = boot();
     const db = inspect();
     try {
-      db.prepare("DELETE FROM schema_migrations WHERE version = ?").run(1);
+      db.prepare("DELETE FROM schema_migrations WHERE version = ?").run(2);
       const wrongVersion = await server.inject("/health/ready");
       expect(wrongVersion.statusCode).toBe(503);
       expect(wrongVersion.json()).toEqual({ status: "not_ready" });
@@ -140,6 +143,7 @@ describe("startup config", () => {
   it("ignores an ambient key in mock mode", () => {
     expect(readConfig({ GEMINI_API_KEY: "fixture" })).toEqual({
       HOST: "127.0.0.1", PORT: 8080, DATA_DIR: "/data", PROVIDER: "mock",
+      ALLOWED_ORIGINS: ["http://127.0.0.1:8080", "http://localhost:8080"], LOCAL_HTTP_COOKIES: false,
     });
   });
 
