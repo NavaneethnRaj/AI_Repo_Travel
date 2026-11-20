@@ -12,7 +12,7 @@ beforeEach(() => {
   db = adapterDatabase();
   now = Date.parse("2026-11-20T12:00Z");
 });
-afterEach(() => { db.close(); vi.restoreAllMocks(); });
+afterEach(() => db.close());
 
 it("serializes concurrent callers at one upstream start per second and coalesces normalized duplicates", async () => {
   const start = now;
@@ -78,13 +78,17 @@ it.each([429, 503])("applies a bounded global cooldown from upstream %d", async 
 it("uses a five-second abort signal and maps timeouts to an upstream error", async () => {
   const timer = new AbortController();
   const timeout = vi.spyOn(AbortSignal, "timeout").mockReturnValue(timer.signal);
-  const search = createPlaceSearch(db, { clock, sleep, transport: async (_url, { signal }) =>
-    new Promise((_resolve, reject) => signal?.addEventListener("abort", () => reject(signal.reason), { once: true })),
-  });
-  const result = search("Lisbon");
-  timer.abort(new DOMException("Timed out", "TimeoutError"));
-  await expect(result).rejects.toMatchObject({ statusCode: 503 });
-  expect(timeout).toHaveBeenCalledWith(5000);
+  try {
+    const search = createPlaceSearch(db, { clock, sleep, transport: async (_url, { signal }) =>
+      new Promise((_resolve, reject) => signal?.addEventListener("abort", () => reject(signal.reason), { once: true })),
+    });
+    const result = search("Lisbon");
+    timer.abort(new DOMException("Timed out", "TimeoutError"));
+    await expect(result).rejects.toMatchObject({ statusCode: 503 });
+    expect(timeout).toHaveBeenCalledWith(5000);
+  } finally {
+    timeout.mockRestore();
+  }
 });
 
 it("aborts a decoded body over 64 KiB before reading another chunk", async () => {

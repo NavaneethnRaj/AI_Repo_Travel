@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { App } from "../../apps/web/src/App.js";
 import { authCopy, authRetryMessage } from "../../apps/web/src/auth/copy.js";
@@ -79,8 +79,8 @@ it("shows the 429 copy using the server wait and the correct units", async () =>
 
 it("shows the authenticated empty list and opens the currency form", async () => {
   mockApi((path) => Response.json(path.endsWith("/session") ? signedIn : { items: [] }));
-  open("/trips");
-  expect(await screen.findByRole("heading", { name: "No trips yet" })).toBeTruthy();
+  await act(async () => open("/trips"));
+  expect(screen.getByRole("heading", { name: "No trips yet" })).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Start a trip" }));
   const currency = screen.getByLabelText("Currency");
   expect(document.activeElement).toBe(currency);
