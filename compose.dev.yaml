@@ -1,0 +1,26 @@
+services:
+  app:
+    image: "${COMPOSE_PROJECT_NAME}-app-dev"
+    build:
+      target: test
+    init: true
+    ports: !override
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - trip-dev-data:/data
+      - dev-deps:/app/node_modules
+      - /app/apps/api/dist
+      - /app/packages/contracts/dist
+      - /app/packages/travel-ui/dist
+      - ./apps/api/src:/app/apps/api/src:ro
+      - ./apps/web/src:/app/apps/web/src:ro
+      - ./apps/web/index.html:/app/apps/web/index.html:ro
+      - ./packages/contracts/src:/app/packages/contracts/src:ro
+      - ./packages/travel-ui/src:/app/packages/travel-ui/src:ro
+      - ./assets/catalog:/app/assets/catalog:ro
+      - ./tests/fixtures:/app/tests/fixtures:ro
+    command: ["bash", "scripts/dev.sh"]
+
+volumes:
+  trip-dev-data:
+  dev-deps:

@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "tsBuildInfoFile": "../../node_modules/.cache/wayfarer-web.tsbuildinfo"
+  },
+  "include": ["src", "vite.config.ts", "../../tests/fixtures/split-card.json", "../../assets/catalog/places.json"],
+  "references": [{ "path": "../../packages/travel-ui" }]
+}
