@@ -8,6 +8,8 @@ import { isApiRequest, registerAuthRoutes } from "./auth/routes.js";
 import { createRates } from "./auth/rates.js";
 import { HttpError, respondError } from "./http.js";
 import { registerTripRoutes } from "./trips/routes.js";
+import { registerPlaceRoutes } from "./places/routes.js";
+import { registerWeatherRoutes } from "./weather/routes.js";
 import type { Config } from "./config.js";
 import { openDatabase } from "./db/database.js";
 
@@ -71,6 +73,8 @@ export function buildServer(config: Config, staticRoot?: string, { clock = Date.
   const rates = createRates(database.db, clock);
   const requireUser = registerAuthRoutes(app, database.db, config, clock, rates);
   registerTripRoutes(app, database.db, clock, rates, requireUser);
+  registerPlaceRoutes(app, database.db, rates, requireUser, { clock, enabled: config.PLACES_ENABLED });
+  registerWeatherRoutes(app, database.db, rates, requireUser, { clock, enabled: config.WEATHER_ENABLED });
 
   for (const path of ["/signin", "/signup", "/trips", "/trips/:id"]) {
     app.get(path, (_request, reply) => reply.sendFile("index.html"));

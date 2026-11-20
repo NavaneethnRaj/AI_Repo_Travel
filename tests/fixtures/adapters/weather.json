@@ -1,0 +1,10 @@
+{
+  "timezone": "Europe/Lisbon",
+  "daily_units": { "temperature_2m_min": "°C", "temperature_2m_max": "°C" },
+  "daily": {
+    "time": ["2026-11-21", "2026-11-22"],
+    "temperature_2m_min": [9.4, 10],
+    "temperature_2m_max": [17.5, 18.2],
+    "weather_code": [0, 61]
+  }
+}

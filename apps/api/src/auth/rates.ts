@@ -7,6 +7,8 @@ const policies = {
   loginIp: { duration: 900, limit: 20 },
   register: { duration: 3600, limit: 5 },
   board: { duration: 60, limit: 60 },
+  places: { duration: 60, limit: 10 },
+  weather: { duration: 60, limit: 30 },
 };
 
 type Scope = keyof typeof policies;
