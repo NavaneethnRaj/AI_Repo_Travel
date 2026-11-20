@@ -1,0 +1,35 @@
+{
+  "name": "wayfarer",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=26.13.1 <27"
+  },
+  "scripts": {
+    "build": "tsc -b && npm run copy:migrations -w @wayfarer/api && npm run build -w @wayfarer/web",
+    "typecheck": "tsc -b && tsc --noEmit -p tests/tsconfig.json",
+    "generate:openui": "tsc -b packages/travel-ui && node packages/travel-ui/dist/generate.js",
+    "test:offline": "tsc -b && vitest run"
+  },
+  "devDependencies": {
+    "@testing-library/react": "16.3.0",
+    "@types/node": "26.0.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "jsdom": "27.0.1",
+    "typescript": "5.9.3",
+    "undici": "7.24.0",
+    "vitest": "4.0.18",
+    "@types/better-sqlite3": "9.6.0"
+  },
+  "overrides": {
+    "@openuidev/lang-core": "1.1.1",
+    "@openuidev/devtools": "0.3.1",
+    "@openuidev/observability": "0.0.4",
+    "zod": "4.1.12"
+  }
+}
