@@ -94,6 +94,7 @@ describe("Fastify and SQLite", () => {
     expect(before.migrations).toEqual([
       { version: 1, name: "0001_init.sql", applied_at: expect.any(String) },
       { version: 2, name: "0002_accounts.sql", applied_at: expect.any(String) },
+      { version: 3, name: "0003_adapter_caches.sql", applied_at: expect.any(String) },
     ]);
     expect(before.metadata).toEqual([
       { key: "created_at", value: expect.any(String) },
@@ -144,6 +145,7 @@ describe("startup config", () => {
     expect(readConfig({ GEMINI_API_KEY: "fixture" })).toEqual({
       HOST: "127.0.0.1", PORT: 8080, DATA_DIR: "/data", PROVIDER: "mock",
       ALLOWED_ORIGINS: ["http://127.0.0.1:8080", "http://localhost:8080"], LOCAL_HTTP_COOKIES: false,
+      WEATHER_ENABLED: true, PLACES_ENABLED: true,
     });
   });
 

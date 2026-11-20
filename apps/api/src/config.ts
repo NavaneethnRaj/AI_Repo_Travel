@@ -19,6 +19,8 @@ const fields = z.object({
   GEMINI_API_KEY: z.string().optional(),
   ALLOWED_ORIGINS: z.string().default(defaultOrigins).transform((value) => value.split(",").map((origin) => origin.trim()))
     .pipe(z.array(z.string().refine(isOrigin)).min(1)),
+  PLACES_ENABLED: z.enum(["0", "1"]).default("1").transform((value) => value === "1"),
+  WEATHER_ENABLED: z.enum(["0", "1"]).default("1").transform((value) => value === "1"),
   LOCAL_HTTP_COOKIES: z.enum(["0", "1"]).default("0").transform((value) => value === "1"),
 }).superRefine((env, context) => {
   if (env.LOCAL_HTTP_COOKIES && env.ALLOWED_ORIGINS.some((origin) => {

@@ -204,6 +204,7 @@ describe("WP2 HTTP accounts and trips", () => {
   });
 
   it("limits the twenty-first failure from one socket IP and ignores forwarding headers", async () => {
+    const verify = vi.spyOn(passwords, "verifyPassword").mockResolvedValue(false);
     const jar = new Jar("192.0.2.1");
     await jar.send("GET", "/session");
     for (let index = 0; index < 21; index++) {
@@ -213,6 +214,7 @@ describe("WP2 HTTP accounts and trips", () => {
       expect(response.statusCode).toBe(index === 20 ? 429 : 401);
       if (index === 20) expect(response.headers["retry-after"]).toBe("900");
     }
+    expect(verify).toHaveBeenCalledTimes(20);
   });
 
   it("limits the sixth registration from an IP", async () => {

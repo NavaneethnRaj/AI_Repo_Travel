@@ -1,0 +1,21 @@
+[
+  {
+    "osm_type": "relation", "osm_id": 5400890, "name": "Lisbon",
+    "display_name": "Lisbon, Portugal", "lat": "38.7245", "lon": "-9.1500",
+    "boundingbox": ["38.69", "38.80", "-9.23", "-9.09"],
+    "address": { "state": "Lisbon", "country": "Portugal", "postcode": "0000" },
+    "licence": "Ignored extra upstream metadata"
+  },
+  {
+    "osm_type": "node", "osm_id": 1, "display_name": "Invalid coordinates",
+    "lat": "NaN", "lon": "180.1"
+  },
+  {
+    "osm_type": "way", "osm_id": 2, "display_name": "Invalid bounds",
+    "lat": "38", "lon": "-9", "boundingbox": ["39", "38", "-9", "-10"]
+  },
+  {
+    "osm_type": "node", "osm_id": 3, "display_name": "Campo\u0000Grande",
+    "lat": "38.75", "lon": "-9.15"
+  }
+]

@@ -98,3 +98,4 @@ export type TripView = z.infer<typeof TripView>;
 export type TripListResponse = z.infer<typeof TripListResponse>;
 export type BoardRequest = z.infer<typeof BoardRequest>;
 export type BoardResponse = z.infer<typeof BoardResponse>;
+export * from "./adapters.js";

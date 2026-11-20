@@ -78,3 +78,13 @@ The repository’s .npmrc disables lifecycle scripts to prevent OpenUI’s insta
 Sign-up uses the same Argon2id work and a generic failure message for duplicate email addresses. A successful sign-up and a duplicate request still return different outcomes, so registration can reveal whether an address is in use. Requests are limited to five per IP per hour. Email verification and password reset are deferred.
 
 With local Docker Compose, browsers reach Fastify from the bridge gateway address. Local users share the per-IP sign-in and sign-up limits. A hosted deployment needs the trusted-proxy setup described in the design.
+
+## Place search and weather
+
+The internal signed-in routes are `GET /api/v1/places/search?q=Lisbon` and `GET /api/v1/weather?placeId=lisbon&start=YYYY-MM-DD&end=YYYY-MM-DD&units=celsius`. The weather route resolves its place ID on the server. The adapters use cached results and apply per-user rate limits.
+
+`PLACES_ENABLED` and `WEATHER_ENABLED` default to `1`. Set either to `0` and restart the service to disable that provider without changing the frontend. Place search uses one app-wide worker with at most one upstream request per second and a seven-day cache. Use it only for explicit public place searches and keep the OpenStreetMap attribution visible. See the [Nominatim usage policy](https://operations.osmfoundation.org/policies/nominatim/).
+
+Weather sends rounded destination coordinates and the forecast parameters to Open-Meteo. Forecasts cover today through day 15, and stale cached forecasts are available for up to 24 hours after retrieval. [Open-Meteo attribution](https://open-meteo.com/)
+
+Run `npm run test:offline` in the supported Node environment. Tests use injected transports and deny external egress.
