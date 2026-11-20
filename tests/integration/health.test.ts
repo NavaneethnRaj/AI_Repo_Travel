@@ -94,6 +94,7 @@ describe("Fastify and SQLite", () => {
     expect(before.migrations).toEqual([
       { version: 1, name: "0001_init.sql", applied_at: expect.any(String) },
       { version: 2, name: "0002_accounts.sql", applied_at: expect.any(String) },
+      { version: 3, name: "0003_turns.sql", applied_at: expect.any(String) },
     ]);
     expect(before.metadata).toEqual([
       { key: "created_at", value: expect.any(String) },
@@ -104,6 +105,35 @@ describe("Fastify and SQLite", () => {
     app = undefined;
     boot();
     expect(snapshot()).toEqual(before);
+  });
+
+  it("marks abandoned active turns interrupted before the next server boot", async () => {
+    boot();
+    await app?.close();
+    app = undefined;
+    const db = inspect();
+    try {
+      db.exec("PRAGMA foreign_keys = OFF");
+      db.prepare(`INSERT INTO trips
+        (id, owner_id, client_id, title, currency, revision, schema_version, brief_json, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run("trip-fixture", "owner-fixture", "client-fixture", "Fixture", "EUR", 0, 1, "{}", "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.000Z");
+      db.prepare(`INSERT INTO turns
+        (id, trip_id, client_id, request_hash, base_revision, state, intent, library_version, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+        .run("turn-fixture", "trip-fixture", "turn-client-fixture", Buffer.from("hash"), 0, "active", "inspire", "fixture-v1", "2026-01-01T00:00:00.000Z", "2026-01-01T00:00:00.000Z");
+    } finally {
+      db.close();
+    }
+
+    boot();
+    const recovered = inspect();
+    try {
+      expect(recovered.prepare("SELECT state FROM turns WHERE id = ?").get("turn-fixture"))
+        .toEqual({ state: "interrupted" });
+    } finally {
+      recovered.close();
+    }
   });
 
   it("refuses to start against an unknown newer version", async () => {
@@ -124,7 +154,7 @@ describe("Fastify and SQLite", () => {
     const server = boot();
     const db = inspect();
     try {
-      db.prepare("DELETE FROM schema_migrations WHERE version = ?").run(2);
+      db.prepare("DELETE FROM schema_migrations WHERE version = ?").run(3);
       const wrongVersion = await server.inject("/health/ready");
       expect(wrongVersion.statusCode).toBe(503);
       expect(wrongVersion.json()).toEqual({ status: "not_ready" });
@@ -143,13 +173,16 @@ describe("startup config", () => {
   it("ignores an ambient key in mock mode", () => {
     expect(readConfig({ GEMINI_API_KEY: "fixture" })).toEqual({
       HOST: "127.0.0.1", PORT: 8080, DATA_DIR: "/data", PROVIDER: "mock",
+      GEMINI_MODEL: "gemini-3.6-flash",
       ALLOWED_ORIGINS: ["http://127.0.0.1:8080", "http://localhost:8080"], LOCAL_HTTP_COOKIES: false,
     });
   });
 
   it("requires a key in Gemini mode and excludes secret values from results and errors", () => {
     expect(() => readConfig({ PROVIDER: "gemini" })).toThrow("GEMINI_API_KEY is required");
-    expect(readConfig({ PROVIDER: "gemini", GEMINI_API_KEY: "fixture" })).not.toHaveProperty("GEMINI_API_KEY");
+    expect(readConfig({ PROVIDER: "gemini", GEMINI_API_KEY: "fixture" })).toMatchObject({
+      GEMINI_API_KEY: "fixture", GEMINI_MODEL: "gemini-3.6-flash",
+    });
     expect(() => readConfig({ PORT: "fixture" })).toThrow(/^Invalid configuration for PORT$/);
   });
 });

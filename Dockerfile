@@ -34,6 +34,7 @@ COPY --from=build app/apps/api/dist/db/database.js apps/api/dist/db/
 COPY --from=build app/apps/api/dist/db/migrations/ apps/api/dist/db/migrations/
 COPY --from=build app/apps/api/dist/auth/*.js apps/api/dist/auth/
 COPY --from=build app/apps/api/dist/trips/*.js apps/api/dist/trips/
+COPY --from=build app/apps/api/dist/providers/*.js apps/api/dist/providers/
 COPY --from=build app/apps/web/dist/ apps/web/dist/
 COPY --from=build app/packages/contracts/dist/index.js packages/contracts/dist/
 COPY --from=build app/packages/travel-ui/dist/library.js app/packages/travel-ui/dist/validate.js packages/travel-ui/dist/

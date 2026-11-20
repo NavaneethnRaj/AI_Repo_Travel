@@ -50,7 +50,8 @@ export function Trip({
     const title = parsed.data;
     const saved = pending.current;
     const operation = { kind: "renameTrip", title } as const;
-    const body: BoardRequest = saved?.baseRevision === trip.revision && saved.ops[0].title === title
+    const body: BoardRequest = saved?.baseRevision === trip.revision
+      && saved.ops[0].kind === "renameTrip" && saved.ops[0].title === title
       ? saved : { clientId: crypto.randomUUID(), baseRevision: trip.revision, ops: [operation] };
     pending.current = body;
     try {

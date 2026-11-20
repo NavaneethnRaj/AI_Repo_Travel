@@ -67,6 +67,9 @@ export function openDatabase(dataDir: string): {
     });
     for (const migration of migrations) apply.immediate(migration);
 
+    db.prepare("UPDATE turns SET state = ?, updated_at = ? WHERE state = ?")
+      .run("interrupted", new Date().toISOString(), "active");
+
     return {
       db,
       readyVersion() {

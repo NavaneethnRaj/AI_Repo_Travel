@@ -17,6 +17,7 @@ const fields = z.object({
   DATA_DIR: z.string().min(1).default("/data"),
   PROVIDER: z.enum(["mock", "gemini"]).default("mock"),
   GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().min(1).default("gemini-3.6-flash"),
   ALLOWED_ORIGINS: z.string().default(defaultOrigins).transform((value) => value.split(",").map((origin) => origin.trim()))
     .pipe(z.array(z.string().refine(isOrigin)).min(1)),
   LOCAL_HTTP_COOKIES: z.enum(["0", "1"]).default("0").transform((value) => value === "1"),
@@ -30,7 +31,9 @@ const fields = z.object({
   if (env.PROVIDER === "gemini" && !env.GEMINI_API_KEY?.trim()) {
     context.addIssue({ code: "custom", path: ["GEMINI_API_KEY"], message: "GEMINI_API_KEY is required when PROVIDER=gemini" });
   }
-}).transform(({ GEMINI_API_KEY: _key, ...config }) => config);
+}).transform(({ GEMINI_API_KEY, ...config }) => config.PROVIDER === "gemini"
+  ? { ...config, GEMINI_API_KEY }
+  : config);
 
 export function readConfig(env: NodeJS.ProcessEnv) {
   const result = fields.safeParse(env);
@@ -44,4 +47,4 @@ export function readConfig(env: NodeJS.ProcessEnv) {
   return result.data;
 }
 
-export type Config = ReturnType<typeof readConfig>;
+export type Config = Omit<z.output<typeof fields>, "GEMINI_API_KEY"> & { GEMINI_API_KEY?: string };

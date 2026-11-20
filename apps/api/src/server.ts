@@ -10,13 +10,23 @@ import { HttpError, respondError } from "./http.js";
 import { registerTripRoutes } from "./trips/routes.js";
 import type { Config } from "./config.js";
 import { openDatabase } from "./db/database.js";
+import type { PlanningProvider } from "./providers/provider.js";
+import { geminiProvider } from "./providers/gemini.js";
+import { mockProvider } from "./providers/scripted.js";
+
+declare module "fastify" {
+  interface FastifyInstance {
+    planningProvider: PlanningProvider;
+  }
+}
 
 type ServerOptions = {
   clock?: () => number;
+  provider?: PlanningProvider;
   logStream?: NonNullable<Exclude<FastifyServerOptions["logger"], boolean>>["stream"];
 };
 
-export function buildServer(config: Config, staticRoot?: string, { clock = Date.now, logStream }: ServerOptions = {}) {
+export function buildServer(config: Config, staticRoot?: string, { clock = Date.now, logStream, provider }: ServerOptions = {}) {
   const app = Fastify({
     bodyLimit: 16384,
     trustProxy: false,
@@ -26,6 +36,10 @@ export function buildServer(config: Config, staticRoot?: string, { clock = Date.
       redact: ["req.headers.authorization", "req.headers.cookie", 'req.headers["x-csrf-token"]', 'res.headers["set-cookie"]'],
     },
   });
+
+  app.decorate("planningProvider", provider ?? (config.PROVIDER === "gemini"
+    ? geminiProvider({ apiKey: config.GEMINI_API_KEY!, model: config.GEMINI_MODEL })
+    : mockProvider));
 
   const database = openDatabase(config.DATA_DIR);
   app.addHook("onClose", async () => database.close());

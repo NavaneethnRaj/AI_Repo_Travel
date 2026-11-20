@@ -8,6 +8,7 @@ import { apiPrefix } from "../auth/routes.js";
 import type { Rates } from "../auth/rates.js";
 import { newId } from "../auth/sessions.js";
 import { HttpError, input, problem } from "../http.js";
+import { applyBoard } from "./board.js";
 
 type TripRow = Omit<TripView, "brief"> & { brief_json: string };
 const cursorValue = z.tuple([z.iso.datetime(), OpaqueId]);
@@ -54,9 +55,6 @@ export function registerTripRoutes(
     JOIN trips ON trips.id = board_receipts.trip_id
     WHERE trips.owner_id = ? AND trips.id = ? AND board_receipts.client_id = ?
   `);
-  const rename = db.prepare(`
-    UPDATE trips SET title = ?, revision = revision + 1, updated_at = ? WHERE owner_id = ? AND id = ?
-  `);
   const saveReceipt = db.prepare(`
     INSERT INTO board_receipts (trip_id, client_id, request_hash, result_json, created_at)
     SELECT id, ?, ?, ?, ? FROM trips WHERE owner_id = ? AND id = ?
@@ -88,11 +86,8 @@ export function registerTripRoutes(
       });
     }
 
-    let title = trip.title;
-    for (const operation of body.ops) title = operation.title;
     const now = new Date(clock()).toISOString();
-    rename.run(title, now, owner, id);
-    const result = { revision: trip.revision + 1 };
+    const result = { revision: applyBoard(db, owner, trip, body.ops, now) };
     saveReceipt.run(body.clientId, hash, JSON.stringify(result), now, owner, id);
     return result;
   });
