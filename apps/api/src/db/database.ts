@@ -30,7 +30,11 @@ function readVersion(status: Database.Statement<[], MigrationStatus>, latest: nu
   return version;
 }
 
-export function openDatabase(dataDir: string) {
+export function openDatabase(dataDir: string): {
+  db: Database.Database;
+  readyVersion(): number | null;
+  close(): void;
+} {
   const migrations = loadMigrations();
   const latest = migrations.length;
   mkdirSync(dataDir, { recursive: true });
@@ -64,6 +68,7 @@ export function openDatabase(dataDir: string) {
     for (const migration of migrations) apply.immediate(migration);
 
     return {
+      db,
       readyVersion() {
         return readVersion(status, latest) === latest ? latest : null;
       },

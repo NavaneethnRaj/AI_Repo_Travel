@@ -18,6 +18,7 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: "8080"
+      LOCAL_HTTP_COOKIES: "1"
       DATA_DIR: /data
       OPENUI_TELEMETRY_DISABLED: "1"
     healthcheck:
